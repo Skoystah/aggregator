@@ -2,22 +2,52 @@ package main
 
 import (
 	"aggregator/internal/config"
-	"fmt"
+	"aggregator/internal/database"
+	"database/sql"
+	"log"
+	"os"
 )
+
+type state struct {
+	db  *database.Queries
+	cfg *config.Config
+}
 
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
-		fmt.Errorf("error reading config", err)
+		log.Fatal(err)
 	}
 
-	cfg.SetUser("geert")
-
-	// Reading config again!
-	cfg, err = config.Read()
+	db, err := sql.Open("postgres", cfg.URL)
 	if err != nil {
-		fmt.Errorf("error reading config", err)
+		log.Fatal(err)
 	}
-	fmt.Printf("Current user name: %v", cfg)
-}
+	dbQueries := database.New(db)
 
+	currentState := &state{cfg: &cfg, db: dbQueries}
+
+	commands := commands{cliCommands: make(map[string]func(*state, command) error)}
+
+	//TODO - const for login name?
+	commands.register("login", handlerLogin)
+	commands.register("register", handlerRegister)
+	commands.register("reset", handlerReset)
+	commands.register("users", handlerUsers)
+	commands.register("agg", handlerAgg)
+
+	iptArguments := os.Args
+	if len(iptArguments) < 2 {
+		log.Fatal("error - too few arguments")
+		return
+	}
+
+	cmdName := iptArguments[1]
+	cmdArgs := iptArguments[2:]
+	cmd := command{Name: cmdName, Arguments: cmdArgs}
+
+	err = commands.run(currentState, cmd)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
