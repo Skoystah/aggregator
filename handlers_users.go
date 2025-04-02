@@ -48,7 +48,6 @@ func handlerRegister(s *state, cmd command) error {
 		Name:      userName,
 	})
 
-	//todo error for duplicate? how?
 	if err != nil {
 		return fmt.Errorf("error creating user in database", err)
 	}

@@ -3,7 +3,9 @@ package main
 import (
 	"aggregator/internal/config"
 	"aggregator/internal/database"
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 )
@@ -35,10 +37,11 @@ func main() {
 	commands.register("reset", handlerReset)
 	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
-	commands.register("addfeed", handlerAddFeed)
+	commands.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	commands.register("feeds", handlerFeeds)
-	commands.register("follow", handlerFollow)
-	commands.register("following", handlerFollowing)
+	commands.register("follow", middlewareLoggedIn(handlerFollow))
+	commands.register("following", middlewareLoggedIn(handlerFollowing))
+	commands.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
 	iptArguments := os.Args
 	if len(iptArguments) < 2 {
@@ -53,5 +56,17 @@ func main() {
 	err = commands.run(currentState, cmd)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
+	return func(s *state, cmd command) error {
+		ctx := context.Background()
+
+		user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
+		if err != nil {
+			return fmt.Errorf("error retrieving current user: %w", err)
+		}
+		return handler(s, cmd, user)
 	}
 }

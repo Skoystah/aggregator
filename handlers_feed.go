@@ -27,17 +27,12 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Arguments) != 2 {
 		return fmt.Errorf("usage: %s <name> <url>", cmd.Name)
 	}
 
 	ctx := context.Background()
-	currentUser, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error retrieving current user", err)
-	}
-
 	feedName := cmd.Arguments[0]
 	feedURL := cmd.Arguments[1]
 
@@ -48,7 +43,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: currentTime,
 		Name:      feedName,
 		Url:       feedURL,
-		UserID:    currentUser.ID,
+		UserID:    user.ID,
 	})
 
 	if err != nil {
@@ -59,7 +54,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		ID:        uuid.New(),
 		CreatedAt: currentTime,
 		UpdatedAt: currentTime,
-		UserID:    currentUser.ID,
+		UserID:    user.ID,
 		FeedID:    newFeed.ID,
 	})
 
