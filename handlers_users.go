@@ -4,10 +4,9 @@ import (
 	"aggregator/internal/database"
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"time"
 )
 
 func handlerLogin(s *state, cmd command) error {
