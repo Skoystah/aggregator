@@ -2,30 +2,12 @@ package main
 
 import (
 	"aggregator/internal/database"
-	"aggregator/internal/rss"
 	"context"
 	"fmt"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"time"
 )
-
-func handlerAgg(s *state, cmd command) error {
-	if len(cmd.Arguments) != 0 {
-		return fmt.Errorf("usage: %s", cmd.Name)
-	}
-
-	feedURL := "https://www.wagslane.dev/index.xml"
-	ctx := context.Background()
-
-	feed, err := rss.FetchFeed(ctx, feedURL)
-	if err != nil {
-		return fmt.Errorf("error fetching RSS feed", err)
-	}
-
-	fmt.Println(feed)
-	return nil
-}
 
 func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Arguments) != 2 {

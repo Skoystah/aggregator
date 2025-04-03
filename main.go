@@ -31,7 +31,6 @@ func main() {
 
 	commands := commands{cliCommands: make(map[string]func(*state, command) error)}
 
-	//TODO - const for login name?
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
 	commands.register("reset", handlerReset)
@@ -42,6 +41,7 @@ func main() {
 	commands.register("follow", middlewareLoggedIn(handlerFollow))
 	commands.register("following", middlewareLoggedIn(handlerFollowing))
 	commands.register("unfollow", middlewareLoggedIn(handlerUnfollow))
+	commands.register("browse", middlewareLoggedIn(handlerBrowse))
 
 	iptArguments := os.Args
 	if len(iptArguments) < 2 {
